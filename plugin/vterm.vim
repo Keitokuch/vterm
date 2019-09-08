@@ -58,6 +58,21 @@ function! VTermToggleFocus()
     endif
 endfunction
 
+function! VtermClose()
+    if (exists("t:vterm_name"))
+        if (t:vterm_show == 1)
+            let t:vterm_show = 0 
+            let t:vterm_height = g:vterm_win_height 
+            if bufwinnr(t:vterm_name) == winnr() 
+                exe win_id2win(t:vterm_last_win) . "wincmd w" 
+            endif 
+            exe bufwinnr(t:vterm_name)"hide"
+        endif 
+        exe "bdelete! " . t:vterm_name 
+        unlet t:vterm_name 
+    endif 
+endfunction 
+
 tnoremap jj <C-\><C-n>
 exe 'tnoremap ' . vterm_map_toggleterm . ' <C-\><C-n>:call VTermToggleTerminal()<CR>'
 exe 'nnoremap ' . vterm_map_toggleterm . ' :call VTermToggleTerminal()<CR>'
