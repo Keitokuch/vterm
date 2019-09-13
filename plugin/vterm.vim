@@ -47,7 +47,6 @@ function! VTermToggleFocus()
         let l:term_win = bufwinnr(t:vterm_name)
         let l:curr_win = winnr()
         if l:term_win == l:curr_win
-            "exe t:vterm_last_win . "wincmd w"
             exe win_id2win(t:vterm_last_win) . "wincmd w"
         else 
             let t:vterm_last_win = winnr()
@@ -73,7 +72,6 @@ function! VtermClose()
     endif 
 endfunction 
 
-tnoremap jj <C-\><C-n>
 exe 'tnoremap ' . vterm_map_toggleterm . ' <C-\><C-n>:call VTermToggleTerminal()<CR>'
 exe 'nnoremap ' . vterm_map_toggleterm . ' :call VTermToggleTerminal()<CR>'
 exe 'tnoremap ' . vterm_map_togglefocus . ' <C-\><C-n>:call VTermToggleFocus()<CR>'
