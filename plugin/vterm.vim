@@ -82,3 +82,6 @@ autocmd bufenter * if (winnr("$") == 1 && &buftype ==# 'terminal' ) | q | endif
 autocmd BufWinLeave * if &buftype == "terminal" | let t:vterm_show = 0 | endif 
 autocmd BufDelete * if &buftype == "terminal" | unlet t:vterm_name | endif 
 
+command! -n=0 -bar VTermClose call VTermToggleTerminal()
+command! -n=0 -bar VTermToggleFocus call VTermToggleFocus() 
+command! -n=0 -bar VTermClose call VTermClose() 
