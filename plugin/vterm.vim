@@ -57,7 +57,7 @@ function! VTermToggleFocus()
     endif
 endfunction
 
-function! VtermClose()
+function! VTermClose()
     if (exists("t:vterm_name"))
         if (t:vterm_show == 1)
             let t:vterm_show = 0 
