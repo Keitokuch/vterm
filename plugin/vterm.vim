@@ -12,7 +12,6 @@ let g:vterm_map_toggleterm = get(g:, 'vterm_map_toggleterm', '<C-t>')
 let g:vterm_map_togglefocus = get(g:, 'vterm_map_togglefocus', '<C-q>')
 let g:vterm_win_height = get(g:, 'vterm_win_height', 8)
 
-let t:vterm_height = g:vterm_win_height 
 
 function! VTermToggleTerminal() 
     if exists("t:vterm_name")
@@ -76,8 +75,8 @@ exe 'tnoremap ' . vterm_map_toggleterm . ' <C-\><C-n>:call VTermToggleTerminal()
 exe 'nnoremap ' . vterm_map_toggleterm . ' :call VTermToggleTerminal()<CR>'
 exe 'tnoremap ' . vterm_map_togglefocus . ' <C-\><C-n>:call VTermToggleFocus()<CR>'
 exe 'nnoremap ' . vterm_map_togglefocus . ' :call VTermToggleFocus()<CR>'
-au TabEnter * let t:vterm_show = 0 
-au VimEnter * let t:vterm_show = 0 
+au TabEnter * let t:vterm_show = 0 | let t:vterm_height = g:vterm_win_height 
+au VimEnter * let t:vterm_show = 0 | let t:vterm_height = g:vterm_win_height 
 autocmd bufenter * if (winnr("$") == 1 && &buftype ==# 'terminal' ) | q | endif
 autocmd BufWinLeave * if &buftype == "terminal" | let t:vterm_show = 0 | endif 
 autocmd BufDelete * if &buftype == "terminal" | unlet t:vterm_name | endif 
