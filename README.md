@@ -1,2 +1,2 @@
 # vterm
-neovim terminal utilities
+A neovim plugin for a better built-in terminal experience.
