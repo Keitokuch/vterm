@@ -1,6 +1,6 @@
-if !has('nvim')
-    finish
-endif
+" if !has('nvim')
+"     finish
+" endif
 
 if exists('g:loaded_vterm')
     finish 
