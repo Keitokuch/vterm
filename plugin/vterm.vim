@@ -45,6 +45,14 @@ function! VTermHideWindow()
     exe bufwinnr(g:vterm_bufname)"hide"
 endfunction
 
+function! VTermCloseWindow()
+    let t:vterm_show = 0
+    if &filetype == 'vterm' 
+        q 
+    endif
+endfu
+
+
 function! VTermToggleTerminal() 
     if exists("t:vterm_show")
         if (t:vterm_show == 0)
@@ -99,7 +107,8 @@ augroup end
 
 if has('nvim')
     augroup VTERM_NVIM
-        au TermClose    * call VTermHideWindow() | unlet g:vterm_bufname
+        " au TermClose    * call VTermHideWindow() | unlet g:vterm_bufname
+        au TermClose    * call VTermCloseWindow() | unlet! g:vterm_bufname
     augroup end
 endif
 
