@@ -12,6 +12,15 @@ let g:vterm_map_toggleterm = get(g:, 'vterm_map_toggleterm', '<C-t>')
 let g:vterm_map_togglefocus = get(g:, 'vterm_map_togglefocus', '<C-q>')
 let g:vterm_win_height = get(g:, 'vterm_win_height', 8)
 
+if has('nvim')
+    let s:term_start = 'terminal'
+    let s:term_insert = 'startinsert!'
+else
+    let s:term_start = 'terminal ++curwin ++kill=kill'
+    let s:term_insert = 'call feedkeys("i")'
+    silent !stty -ixon > /dev/null 2>/dev/null
+endif
+
 function! VTermOpenWindow()
     let t:vterm_show = 1
     let t:vterm_last_win = win_getid() 
@@ -19,12 +28,12 @@ function! VTermOpenWindow()
     exe "resize " . t:vterm_win_height 
     if exists("g:vterm_bufname")
         exe "buffer" g:vterm_bufname
+        exe s:term_insert
     else
-        terminal
+        exe s:term_start
         exe "set ft=vterm"
         let g:vterm_bufname = bufname("%")
     endif
-    startinsert!
 endf
 
 function! VTermHideWindow()
@@ -60,7 +69,7 @@ function! VTermToggleFocus()
             " Focus vterm window
             let t:vterm_last_win = win_getid() 
             exe bufwinnr(g:vterm_bufname) . "wincmd w"
-            startinsert!
+            exe s:term_insert
         endif
     endif
 endfunction
@@ -74,7 +83,7 @@ function! VTermClose()
         exe "bdelete! " . g:vterm_bufname 
         unlet g:vterm_bufname 
     endif 
-endfunction 
+endfunction
 
 exe 'tnoremap ' . vterm_map_toggleterm . ' <C-\><C-n>:call VTermToggleTerminal()<CR>'
 exe 'nnoremap ' . vterm_map_toggleterm . ' :call VTermToggleTerminal()<CR>'
@@ -82,12 +91,17 @@ exe 'tnoremap ' . vterm_map_togglefocus . ' <C-\><C-n>:call VTermToggleFocus()<C
 exe 'nnoremap ' . vterm_map_togglefocus . ' :call VTermToggleFocus()<CR>'
 augroup VTERM
     au FileType vterm set nobuflisted
-    au bufenter     * if (winnr("$") == 1 && &buftype ==# 'terminal' ) | q | endif
+    au bufenter     * if (winnr("$") == 1 && &buftype ==# 'terminal' ) | q! | endif
     au BufWinLeave  * if &filetype == "vterm" | let t:vterm_show = 0 | endif 
-    au TermClose    * call VTermHideWindow() | unlet g:vterm_bufname
-    au VimLeavePre  * VTermClose
+    au VimLeave     * VTermClose
 augroup end
 "autocmd BufDelete * if &buftype == "terminal" | unlet g:vterm_bufname | endif 
+
+if has('nvim')
+    augroup VTERM_NVIM
+        au TermClose    * call VTermHideWindow() | unlet g:vterm_bufname
+    augroup end
+endif
 
 command! -n=0 -bar VTermToggleTerminal call VTermToggleTerminal()
 command! -n=0 -bar VTermToggleFocus call VTermToggleFocus() 
