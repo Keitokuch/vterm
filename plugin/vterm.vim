@@ -12,10 +12,12 @@ if has('nvim')
     " Neovim
     let s:term_start = 'terminal'
     let s:term_insert = 'startinsert!'
+    let s:nvim_insert = 'startinsert!'
 else
     "  Vim
     let s:term_start = 'terminal ++curwin ++kill=kill'
     let s:term_insert = 'call feedkeys("i")'
+    let s:nvim_insert = ''
     silent !stty -ixon > /dev/null 2>/dev/null
 endif
 
@@ -26,12 +28,14 @@ function! VTermOpenWindow()
     exe "resize " . t:vterm_win_height 
     if exists("t:vterm_bufname")
         exe "buffer" t:vterm_bufname
+        exe s:term_insert
     else
+        " Create buffer
         exe s:term_start
         exe "set ft=vterm"
         let t:vterm_bufname = bufname("%")
+        exe s:nvim_insert
     endif
-    exe s:term_insert
 endf
 
 function! VTermHideWindow()
