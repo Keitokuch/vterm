@@ -105,6 +105,10 @@ if has('nvim')
     augroup VTERM_NVIM
         au TermClose    * call VTermClose()
     augroup end
+else
+    augroup VTERM_VIM 
+        au BufWipeout * if &filetype == "vterm" | unlet t:vterm_bufname | endif
+    augroup end
 endif
 
 exe 'tnoremap ' . vterm_map_toggleterm . ' <C-\><C-n>:call VTermToggleTerminal()<CR>'
