@@ -84,7 +84,9 @@ endfunction
 
 function! VTermDestroy()
     if exists("t:vterm_bufname")
-        if bufexists(t:vterm_bufname) | exe "bd! " . t:vterm_bufname | endif
+        if bufexists(t:vterm_bufname) 
+            exe "bd! " . bufnr(t:vterm_bufname)
+        endif
         unlet t:vterm_bufname
     endif
 endfu
