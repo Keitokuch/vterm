@@ -84,7 +84,7 @@ endfunction
 
 function! VTermDestroy()
     if exists("t:vterm_bufname")
-        exe "bd!" . t:vterm_bufname
+        if bufexists(t:vterm_bufname) | exe "bd! " . t:vterm_bufname | endif
         unlet t:vterm_bufname
     endif
 endfu
@@ -101,7 +101,7 @@ augroup end
 
 if has('nvim')
     augroup VTERM_NVIM
-        au TermClose    * call VTermHideWindow()
+        au TermClose    * call VTermClose()
     augroup end
 endif
 
