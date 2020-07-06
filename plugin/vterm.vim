@@ -6,6 +6,7 @@ let g:loaded_vterm = 1
 
 let g:vterm_map_toggleterm = get(g:, 'vterm_map_toggleterm', '<C-t>')
 let g:vterm_map_togglefocus = get(g:, 'vterm_map_togglefocus', '<C-q>')
+let g:vterm_map_togglezoom = get(g:, 'vterm_map_togglezoom', 'a')
 let g:vterm_win_height = get(g:, 'vterm_win_height', 8)
 
 if has('nvim')
@@ -26,7 +27,7 @@ function! VTermOpenWindow()
     let t:vterm_last_win = win_getid() 
     bo split
     exe "resize " . t:vterm_win_height 
-    if exists("t:vterm_bufname")
+    if s:vterm_exists()
         exe "buffer" t:vterm_bufname
         exe s:term_insert
     else
@@ -40,9 +41,9 @@ endf
 
 function! VTermHideWindow()
     let t:vterm_show = 0 
-    if exists("t:vterm_bufname")
+    if s:vterm_exists()
         let t:vterm_win_height = winheight(bufwinnr(t:vterm_bufname))
-        if bufwinnr(t:vterm_bufname) == winnr()
+        if s:is_vterm_win()
             exe win_id2win(t:vterm_last_win) . "wincmd w"
         endif
         exe bufwinnr(t:vterm_bufname)"hide"
@@ -58,8 +59,8 @@ function! VTermToggleTerminal()
 endfunction
 
 function! VTermToggleFocus()
-    if (exists("t:vterm_bufname") && t:vterm_show == 1)
-        if winnr() == bufwinnr(t:vterm_bufname)
+    if (s:vterm_exists() && t:vterm_show == 1)
+        if s:is_vterm_win()
             " Leave vterm window
             exe win_id2win(t:vterm_last_win) . "wincmd w"
         else
@@ -74,7 +75,7 @@ endfunction
 function! VTermClose()
     call VTermHideWindow()
     call VTermDestroy()
-    if (exists("t:vterm_bufname"))
+    if (s:vterm_exists())
         if (t:vterm_show == 1)
             call VTermHideWindow()
             let t:vterm_win_height = g:vterm_win_height 
@@ -83,12 +84,37 @@ function! VTermClose()
 endfunction
 
 function! VTermDestroy()
-    if exists("t:vterm_bufname")
+    if s:vterm_exists()
         if bufexists(t:vterm_bufname) 
             exe "bd! " . bufnr(t:vterm_bufname)
         endif
         unlet t:vterm_bufname
     endif
+endfu
+
+function! VTermToggleZoom()
+    if s:is_vterm_win()
+        if get(t:, 'vterm_zoomed', 0) == 0
+            let t:vterm_original_height = winheight(bufwinnr(t:vterm_bufname))
+            let t:vterm_zoomed = 1
+            resize
+        else
+            let t:vterm_zoomed = 0
+            exe 'resize' . t:vterm_original_height
+        endif
+    endif
+endfunction
+
+fu! s:is_vterm_win()
+    if bufwinnr(t:vterm_bufname) == winnr()
+        return 1
+    else
+        return 0
+    endif
+endfu
+
+fu! s:vterm_exists()
+    return exists("t:vterm_bufname")
 endfu
 
 augroup VTERM
@@ -98,6 +124,7 @@ augroup VTERM
     au bufenter     * if (winnr("$") == 1 && &buftype ==# 'terminal' ) | q! | endif
     au BufWinLeave  * if &filetype == "vterm" | let t:vterm_show = 0 | endif 
     au VimLeave     * VTermClose
+    au FileType vterm exe 'nmap <buffer> <silent> ' . vterm_map_togglezoom . ' :VTermToggleZoom<CR>'
     "autocmd BufDelete * if &buftype == "terminal" | unlet t:vterm_bufname | endif 
 augroup end
 
@@ -111,11 +138,13 @@ else
     augroup end
 endif
 
-exe 'tnoremap ' . vterm_map_toggleterm . ' <C-\><C-n>:call VTermToggleTerminal()<CR>'
-exe 'nnoremap ' . vterm_map_toggleterm . ' :call VTermToggleTerminal()<CR>'
-exe 'tnoremap ' . vterm_map_togglefocus . ' <C-\><C-n>:call VTermToggleFocus()<CR>'
-exe 'nnoremap ' . vterm_map_togglefocus . ' :call VTermToggleFocus()<CR>'
+exe 'tnoremap ' . vterm_map_toggleterm . ' <C-\><C-n>:VTermToggleTerminal<CR>'
+exe 'nnoremap ' . vterm_map_toggleterm . ' :VTermToggleTerminal<CR>'
+exe 'tnoremap ' . vterm_map_togglefocus . ' <C-\><C-n>:VTermToggleFocus<CR>'
+exe 'nnoremap ' . vterm_map_togglefocus . ' :VTermToggleFocus<CR>'
 
 command! -n=0 -bar VTermToggleTerminal call VTermToggleTerminal()
 command! -n=0 -bar VTermToggleFocus call VTermToggleFocus() 
+command! -n=0 -bar VTermToggleZoom call VTermToggleZoom() 
 command! -n=0 -bar VTermClose call VTermClose() 
+command! -n=0 -bar VTermDestroy call VTermDestroy() 
