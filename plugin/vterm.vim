@@ -27,7 +27,10 @@ function! VTermOpenWindow()
     let t:vterm_last_win = win_getid() 
     bo split
     exe "resize " . t:vterm_win_height 
-    if s:vterm_exists()
+    let t:vterm_winid = win_getid()
+    " Create or Load buffer
+    if VTermExists()
+        " Buffer exists
         exe "buffer" t:vterm_bufname
         exe s:term_insert
     else
@@ -41,8 +44,10 @@ endf
 
 function! VTermHideWindow()
     let t:vterm_show = 0 
-    if s:vterm_exists()
-        let t:vterm_win_height = winheight(bufwinnr(t:vterm_bufname))
+    if VTermExists()
+        if t:vterm_show
+            let t:vterm_win_height = winheight(bufwinnr(t:vterm_bufname))
+        endif
         if s:is_vterm_win()
             exe win_id2win(t:vterm_last_win) . "wincmd w"
         endif
@@ -59,7 +64,7 @@ function! VTermToggleTerminal()
 endfunction
 
 function! VTermToggleFocus()
-    if (s:vterm_exists() && t:vterm_show == 1)
+    if (VTermExists() && t:vterm_show == 1)
         if s:is_vterm_win()
             " Leave vterm window
             exe win_id2win(t:vterm_last_win) . "wincmd w"
@@ -75,8 +80,8 @@ endfunction
 function! VTermClose()
     call VTermHideWindow()
     call VTermDestroy()
-    if (s:vterm_exists())
-        if (t:vterm_show == 1)
+    if VTermExists()
+        if t:vterm_show
             call VTermHideWindow()
             let t:vterm_win_height = g:vterm_win_height 
         endif 
@@ -84,7 +89,7 @@ function! VTermClose()
 endfunction
 
 function! VTermDestroy()
-    if s:vterm_exists()
+    if VTermExists()
         if bufexists(t:vterm_bufname) 
             exe "bd! " . bufnr(t:vterm_bufname)
         endif
@@ -113,7 +118,7 @@ fu! s:is_vterm_win()
     endif
 endfu
 
-fu! s:vterm_exists()
+fu! VTermExists()
     return exists("t:vterm_bufname")
 endfu
 
@@ -121,10 +126,14 @@ augroup VTERM
     au FileType vterm set nobuflisted
     au TabEnter     * let t:vterm_win_height = g:vterm_win_height
     au VimEnter     * let t:vterm_win_height = g:vterm_win_height
-    au bufenter     * if (winnr("$") == 1 && &buftype ==# 'terminal' ) | q! | endif
+    au BufEnter     * if (winnr("$") == 1 && &buftype ==# 'terminal' ) | q! | endif
     au BufWinLeave  * if &filetype == "vterm" | let t:vterm_show = 0 | endif 
     au VimLeave     * VTermClose
     au FileType vterm exe 'nmap <buffer> <silent> ' . vterm_map_togglezoom . ' :VTermToggleZoom<CR>'
+    au BufHidden    * if &filetype == "vterm" | exe 'buffer' t:vterm_bufname | endif
+    au BufEnter     * if VTermExists() | if &ft != "vterm" && win_getid() == t:vterm_winid |
+                \  call VTermClose() | endif | endif
+                " \ call VTermHideWindow() | call VTermOpenWindow() | call VTermToggleFocus() | endif | endif
     "autocmd BufDelete * if &buftype == "terminal" | unlet t:vterm_bufname | endif 
 augroup end
 
