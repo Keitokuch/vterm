@@ -6,7 +6,9 @@ let g:loaded_vterm = 1
 
 let g:vterm_map_toggleterm = get(g:, 'vterm_map_toggleterm', '<C-t>')
 let g:vterm_map_togglefocus = get(g:, 'vterm_map_togglefocus', '<C-q>')
-let g:vterm_map_togglezoom = get(g:, 'vterm_map_togglezoom', 'a')
+let g:vterm_map_zoomnormal = get(g:, 'vterm_map_zoomnormal', 'a')
+let g:vterm_map_zoomterm = get(g:, 'vterm_map_zoomterm', ';a')
+let g:vterm_map_escape = get(g:, 'vterm_map_escape', ';;')
 let g:vterm_win_height = get(g:, 'vterm_win_height', 8)
 
 if has('nvim')
@@ -129,12 +131,11 @@ augroup VTERM
     au BufEnter     * if (winnr("$") == 1 && &buftype ==# 'terminal' ) | q! | endif
     au BufWinLeave  * if &filetype == "vterm" | let t:vterm_show = 0 | endif 
     au VimLeave     * VTermClose
-    au FileType vterm exe 'nmap <buffer> <silent> ' . vterm_map_togglezoom . ' :VTermToggleZoom<CR>'
+    au FileType vterm exe 'nmap <buffer> <silent> ' . vterm_map_zoomnormal . ' :VTermToggleZoom<CR>'
+    au FileType vterm exe 'tnoremap <buffer> <silent> ' . vterm_map_zoomterm . ' <C-\><C-n>:VTermToggleZoom<CR>:' . s:term_insert . '<CR>'
     au BufHidden    * if &filetype == "vterm" | exe 'buffer' t:vterm_bufname | endif
     au BufEnter     * if VTermExists() | if &ft != "vterm" && win_getid() == t:vterm_winid |
                 \  call VTermClose() | endif | endif
-                " \ call VTermHideWindow() | call VTermOpenWindow() | call VTermToggleFocus() | endif | endif
-    "autocmd BufDelete * if &buftype == "terminal" | unlet t:vterm_bufname | endif 
 augroup end
 
 if has('nvim')
@@ -147,10 +148,12 @@ else
     augroup end
 endif
 
+tnoremap <Esc>  <C-\><C-n>
 exe 'tnoremap ' . vterm_map_toggleterm . ' <C-\><C-n>:VTermToggleTerminal<CR>'
 exe 'nnoremap ' . vterm_map_toggleterm . ' :VTermToggleTerminal<CR>'
 exe 'tnoremap ' . vterm_map_togglefocus . ' <C-\><C-n>:VTermToggleFocus<CR>'
 exe 'nnoremap ' . vterm_map_togglefocus . ' :VTermToggleFocus<CR>'
+exe 'tnoremap ' . vterm_map_escape . ' <C-\><C-n>'
 
 command! -n=0 -bar VTermToggleTerminal call VTermToggleTerminal()
 command! -n=0 -bar VTermToggleFocus call VTermToggleFocus() 
