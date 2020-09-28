@@ -10,6 +10,7 @@ let g:vterm_map_zoomnormal = get(g:, 'vterm_map_zoomnormal', 'a')
 let g:vterm_map_zoomterm = get(g:, 'vterm_map_zoomterm', ';a')
 let g:vterm_map_escape = get(g:, 'vterm_map_escape', ';;')
 let g:vterm_win_height = get(g:, 'vterm_win_height', 8)
+let t:vterm_win_height = g:vterm_win_height
 
 if has('nvim')
     " Neovim
