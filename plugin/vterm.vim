@@ -46,7 +46,6 @@ function! VTermOpenWindow()
 endf
 
 function! VTermHideWindow()
-    let t:vterm_show = 0 
     if VTermExists()
         if t:vterm_show
             let t:vterm_win_height = winheight(bufwinnr(t:vterm_bufname))
@@ -56,6 +55,7 @@ function! VTermHideWindow()
         endif
         exe bufwinnr(t:vterm_bufname)"hide"
     endif
+    let t:vterm_show = 0 
 endfunction
 
 function! VTermToggleTerminal() 
