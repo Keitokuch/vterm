@@ -35,9 +35,10 @@ function! VTermOpenWindow()
     if VTermExists()
         " Buffer exists
         exe "buffer" t:vterm_bufname
-        exe s:term_insert
+        if t:vterm_insert | exe s:term_insert | endif
     else
         " Create buffer
+        let t:vterm_insert = 1
         exe s:term_start
         exe "set ft=vterm"
         let t:vterm_bufname = bufname("%")
@@ -58,24 +59,26 @@ function! VTermHideWindow()
     let t:vterm_show = 0 
 endfunction
 
-function! VTermToggleTerminal() 
+function! VTermToggleTerminal(from_term) 
     if get(t:, 'vterm_show', 0) == 0
         call VTermOpenWindow()
     else 
+        let t:vterm_insert = a:from_term
         call VTermHideWindow()
     endif
 endfunction
 
-function! VTermToggleFocus()
+function! VTermToggleFocus(from_term)
     if (VTermExists() && t:vterm_show == 1)
         if s:is_vterm_win()
             " Leave vterm window
+            let t:vterm_insert = a:from_term
             exe win_id2win(t:vterm_last_win) . "wincmd w"
         else
             " Focus vterm window
             let t:vterm_last_win = win_getid() 
             exe bufwinnr(t:vterm_bufname) . "wincmd w"
-            exe s:term_insert
+            if t:vterm_insert | exe s:term_insert | endif
         endif
     endif
 endfunction
@@ -137,6 +140,8 @@ augroup VTERM
     au BufHidden    * if &filetype == "vterm" | exe 'buffer' t:vterm_bufname | endif
     au BufEnter     * if VTermExists() | if &ft != "vterm" && win_getid() == t:vterm_winid |
                 \  call VTermClose() | endif | endif
+    au TermLeave    * if &filetype == "vterm" | let t:vterm_insert = 0 | endif
+    au TermEnter    * if &filetype == "vterm" | let t:vterm_insert = 1 | endif
 augroup end
 
 if has('nvim')
@@ -151,13 +156,15 @@ endif
 
 tnoremap <Esc>  <C-\><C-n>
 exe 'tnoremap ' . vterm_map_toggleterm . ' <C-\><C-n>:VTermToggleTerminal<CR>'
-exe 'nnoremap ' . vterm_map_toggleterm . ' :VTermToggleTerminal<CR>'
+exe 'nnoremap ' . vterm_map_toggleterm . ' :VTermToggleTerminalNormal<CR>'
 exe 'tnoremap ' . vterm_map_togglefocus . ' <C-\><C-n>:VTermToggleFocus<CR>'
-exe 'nnoremap ' . vterm_map_togglefocus . ' :VTermToggleFocus<CR>'
+exe 'nnoremap ' . vterm_map_togglefocus . ' :VTermToggleFocusNormal<CR>'
 exe 'tnoremap ' . vterm_map_escape . ' <C-\><C-n>'
 
-command! -n=0 -bar VTermToggleTerminal call VTermToggleTerminal()
-command! -n=0 -bar VTermToggleFocus call VTermToggleFocus() 
-command! -n=0 -bar VTermToggleZoom call VTermToggleZoom() 
-command! -n=0 -bar VTermClose call VTermClose() 
-command! -n=0 -bar VTermDestroy call VTermDestroy() 
+command! -n=0 -bar VTermToggleTerminal call VTermToggleTerminal(1)
+command! -n=0 -bar VTermToggleTerminalNormal call VTermToggleTerminal(0)
+command! -n=0 -bar VTermToggleFocus call VTermToggleFocus(1)
+command! -n=0 -bar VTermToggleFocusNormal call VTermToggleFocus(0)
+command! -n=0 -bar VTermToggleZoom call VTermToggleZoom()
+command! -n=0 -bar VTermClose call VTermClose()
+command! -n=0 -bar VTermDestroy call VTermDestroy()
