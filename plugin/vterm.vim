@@ -48,28 +48,30 @@ endf
 
 function! VTermHideWindow()
     if VTermExists()
-        if t:vterm_show
-            let t:vterm_win_height = winheight(bufwinnr(t:vterm_bufname))
-        endif
         if s:is_vterm_win()
             exe win_id2win(t:vterm_last_win) . "wincmd w"
         endif
-        exe bufwinnr(t:vterm_bufname)"hide"
+        if s:is_vterm_show()
+            let t:vterm_win_height = winheight(bufwinnr(t:vterm_bufname))
+            exe bufwinnr(t:vterm_bufname)"hide"
+            let t:vterm_show = 0 
+        endif
     endif
-    let t:vterm_show = 0 
 endfunction
 
 function! VTermToggleTerminal(from_term) 
-    if get(t:, 'vterm_show', 0) == 0
+    if !s:is_vterm_show()
         call VTermOpenWindow()
     else 
-        let t:vterm_insert = a:from_term
+        if s:is_vterm_win()
+            let t:vterm_insert = a:from_term
+        endif
         call VTermHideWindow()
     endif
 endfunction
 
 function! VTermToggleFocus(from_term)
-    if (VTermExists() && t:vterm_show == 1)
+    if (VTermExists() && s:is_vterm_show())
         if s:is_vterm_win()
             " Leave vterm window
             let t:vterm_insert = a:from_term
@@ -87,7 +89,7 @@ function! VTermClose()
     call VTermHideWindow()
     call VTermDestroy()
     if VTermExists()
-        if t:vterm_show
+        if s:is_vterm_show()
             call VTermHideWindow()
             let t:vterm_win_height = g:vterm_win_height 
         endif 
@@ -122,6 +124,10 @@ fu! s:is_vterm_win()
     else
         return 0
     endif
+endfu
+
+fu! s:is_vterm_show()
+    return get(t:, 'vterm_show', 0)
 endfu
 
 fu! VTermExists()
